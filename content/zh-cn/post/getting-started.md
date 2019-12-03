@@ -2013,3 +2013,15 @@ private class Emitter(circuit: Circuit) {
 - `DefPrim` 运算语句：作为 **FIRRTL** 的一个节点 `node 名字 = 运算类型的名字 参数列表`
 - `Connect` 赋值语句： `左值名字 <= 右值表达式名字`
 
+# 生成 Verilog
+
+```shell
+$ mill chisel3.run
+```
+
+[下载](https://github.com/colin4124/chisel3-releases/releases/download/firrtl-1.2.0/firrtl-1.2.0.jar) **FIRRTL** 到项目的根目录：
+
+```shell
+$ wget https://github.com/colin4124/chisel3-releases/releases/download/firrtl-1.2.0/firrtl-1.2.0.jar
+$ java -cp firrtl-1.2.0.jar firrtl.stage.FirrtlMain -i Mux2.fir -o Mux.v
+```
