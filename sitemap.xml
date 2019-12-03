@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://funwo.ml/build-chisel-from-scratch/post/</loc>
+    <lastmod>2019-11-30T16:14:50+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://funwo.ml/build-chisel-from-scratch/</loc>
+    <lastmod>2019-11-30T16:14:50+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://funwo.ml/build-chisel-from-scratch/post/getting-started/</loc>
+    <lastmod>2019-11-30T16:14:50+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://funwo.ml/build-chisel-from-scratch/categories/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -9,12 +30,6 @@
   
   <url>
     <loc>http://funwo.ml/build-chisel-from-scratch/tags/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://funwo.ml/build-chisel-from-scratch/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
