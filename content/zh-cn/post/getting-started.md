@@ -90,16 +90,18 @@ object chisel3 extends CommonChiselModule {
 }
 ```
 
-这里用的 `Scala` 版本是 `2.12.10`，依赖 `firrtl` 的 `1.2.0` 版本。
+这里用的 **Scala** 版本是 `2.12.10`，依赖 **firrtl** 的 `1.2.0` 版本。
 
-项目名字叫 `chisel3` ，在使用 **Mill** 进行编译或者是运行时，需要带上项目的名字。
+项目名字叫 **chisel3** ，在使用 **Mill** 进行编译或者是运行时，需要带上项目的名字。
 
 - 编译源代码：`mill chisel3.compile`
 - 编译并运行：`mill chisel3.run`
 
-子项目是 `chiselFrontend`，因为用到宏 **Macro** ，需要把宏相关的放到一个单独的编译项目。需要先编译宏定义的项目之后，才去编译使用宏的项目。虽然目前不会用到宏，但还是保留了这样一个项目结构。
+子项目是 **chiselFrontend**，因为用到宏 **Macro** ，需要把宏相关的放到一个单独的编译项目。需要先编译宏定义的项目之后，才去编译使用宏的项目。虽然目前不会用到宏，但还是保留了这样一个项目结构。
 
-`def moduleDeps = Seq(chiselFrontend)` 定义了编译顺序，即先编译 `chiselFrontend` (`play-chisel/chiselFrontend/src` 的源码) 再轮到 `chisel3`（`play-chisel/chisel3/src`的源码）。
+`def moduleDeps = Seq(chiselFrontend)` 定义了编译顺序。
+
+即先编译 `chiselFrontend` (`play-chisel/chiselFrontend/src` 的源码) 再轮到 `chisel3`（`play-chisel/chisel3/src`的源码）。
 
 源码默认是需要放在 `play-chisel/chisel3/src` 的目录里，但 `def millSourcePath = super.millSourcePath / ammonite.ops.up` 让寻找源代码的路径往上挪了一级。也就是说，原来 **Mill** 是去 `play-chisel/chisel3` 寻找 `src` 目录，现在改成去 `play-chisel` 找。
 
@@ -114,7 +116,7 @@ $ touch src/Main.scala
 
 ```scala
 // play-chisel/src/Main.scala
-package custom
+package playchisel
 
 object Main extends App {
   println("Hello, world")
@@ -126,6 +128,12 @@ object Main extends App {
 ```shell
 $ mill chisel3.run
 ```
+
+{{% admonition tip 源码01 %}}
+{{% /admonition %}}
+
+[play-chisel/tree/chap01-01](https://github.com/colin4124/play-chisel/tree/chap01-01)
+
 
 # 搭建基本的 Chisel 框架
 
@@ -144,7 +152,7 @@ $ mill chisel3.run
 
 ```scala
 // play-chisel/src/Main.scala
-package custom
+package playchisel
 
 import chisel3._
 import chisel3.internal.Builder
@@ -164,7 +172,6 @@ object Main extends App {
   w.write(emitted)
   w.close()
 }
-
 ```
 
 ## Builder
@@ -308,6 +315,7 @@ $ touch chiselFrontend/src/Data.scala
 package chisel3
 
 import chisel3.internal._
+import chisel3.internal.firrtl._
 
 object Input {
   def apply[T<:Data](source: T): T = {
@@ -506,12 +514,17 @@ private class Emitter(circuit: Circuit) {
 ```shell
 $ mill chisel3.run
 ```
+{{% admonition tip 源码02 %}}
+{{% /admonition %}}
+
+[play-chisel/tree/chap01-02](https://github.com/colin4124/play-chisel/tree/chap01-02)
 
 # 自底向上继续完善 Chisel
 
 把 `Main.scala` 的 `class Mux2` 补充完整：
 
 ```scala
+// play-chisel/src/Main.scala
 class Mux2 extends RawModule {
   val sel = IO(Input(UInt(1.W)))
   val in0 = IO(Input(UInt(1.W)))
@@ -541,6 +554,11 @@ package experimental {
       iodefClone
     }
   }
+}
+
+abstract class BaseModule extends HasId {
+  ...
+  protected def IO[T <: Data](iodef: T): T = chisel3.experimental.IO.apply(iodef)
 }
 ```
 
@@ -595,7 +613,6 @@ abstract class BaseModule extends HasId {
 import chisel3.internal.firrtl._
 
 abstract class BaseModule extends HasId {
-  import chisel3.internal.firrtl._
   ...
   protected var _closed = false
   private[chisel3] def isClosed = _closed
@@ -647,6 +664,7 @@ object requireIsChiselType {
 `requireIsHardware` 和 `requireIsChiselType` 用来检查是否符合各自的类型。
 
 ```scala
+// play-chisel/chiselFrontend/src/Data.scala
 abstract class Data extends HasId {
   private var _binding: Option[Binding] = None
   protected[chisel3] def binding: Option[Binding] = _binding
@@ -806,6 +824,7 @@ sealed trait TopBinding extends Binding
 
 除了会根据原来的类型实例化新的对象之外，还会复制它的指定方向属性 `specifiedDirection` 。
 ```scala
+// play-chisel/chiselFrontend/src/Data.scala
 abstract class Data extends HasId {
   def cloneType: this.type
 
@@ -823,8 +842,9 @@ abstract class Data extends HasId {
 
 ```scala
 // play-chisel/chiselFrontend/src/Bits.scala
+import chisel3.internal.firrtl._
+
 sealed abstract class Bits(private[chisel3] val width: Width) extends Element {
-  // Only used for in a few cases, hopefully to be removed
   private[chisel3] def cloneTypeWidth(width: Width): this.type
 
   def cloneType: this.type = cloneTypeWidth(width)
@@ -979,6 +999,9 @@ object ActualDirection {
 
 ```scala
 // play-chisel/chiselFrontend/src/Bits.scala
+import chisel3.internal.Builder.pushOp
+import chisel3.internal.firrtl.PrimOp._
+
 sealed class UInt private[chisel3] (width: Width) extends Bits(width) with Num[UInt] {
   ...
   final def & (that: UInt): UInt =
@@ -1042,6 +1065,9 @@ sealed abstract class Bits(private[chisel3] val width: Width) extends Element {
 
 ```scala
 // play-chisel/src/internal/firrtl/IR.scala
+import chisel3._
+import chisel3.internal._
+
 abstract class Command
 abstract class Definition extends Command  {
   def id: HasId
@@ -1070,6 +1096,7 @@ object PrimOp {
 ```scala
 // play-chisel/chiselFrontend/src/Data.scala
 abstract class Data extends HasId {
+  ...
   private[chisel3] def topBindingOpt: Option[TopBinding] = _binding.flatMap {
     case bindingVal: TopBinding => Some(bindingVal)
   }
@@ -1190,8 +1217,13 @@ case class OpBinding(enclosure: RawModule) extends ConstrainedBinding with ReadO
 `RawModule` 模块的命令列表 `_commands`， 添加命令的方法 `addCommand` 和获取命令的方法 `getCommands`。
 
 ```scala
+// play-chisel/chiselFrontend/src/RawModule.scala
+import scala.collection.mutable.ArrayBuffer
+
+import chisel3.internal._
+import chisel3.internal.firrtl._
+
 abstract class RawModule extends BaseModule {
-  import scala.collection.mutable.ArrayBuffer
   val _commands = ArrayBuffer[Command]()
   def addCommand(c: Command) {
     require(!_closed, "Can't write to module after module close")
@@ -1264,6 +1296,10 @@ object Builder {
 
 `referenceUserModule` 确保当前的模块类型是 `RawModule` 或是其子类。
 
+```shell
+$ touch chiselFrontend/src/internal/MonoConnect.scala
+```
+
 ```scala
 // play-chisel/chiselFrontend/src/internal/MonoConnect.scala
 package chisel3.internal
@@ -1283,8 +1319,9 @@ private[chisel3] object MonoConnect {
 这里定义了三种错误类型：左值不可被赋值 `UnwritableSinkException`、当前模块的左/右值不可用 `UnknownRelationException` 和左/右值的类型不同 `MismatchedException` 。
 
 ```scala
-// play-chisel/chiselFrontend/src/internal/MonoConnect.scala
+// play-chisel/chiselFrontend/src/package.scala
 package object chisel3 {
+  ...
   case class MonoConnectException(message: String) extends ChiselException(message)
 }
 ```
@@ -1293,6 +1330,8 @@ package object chisel3 {
 
 ```scala
 // play-chisel/chiselFrontend/src/internal/MonoConnect.scala
+import chisel3._
+
 private[chisel3] object MonoConnect {
   ...
   def connect(
@@ -1388,6 +1427,9 @@ private[chisel3] object MonoConnect {
 
 ```scala
 // play-chisel/chiselFrontend/src/internal/MonoConnect.scala
+import chisel3.internal.Builder.pushCommand
+import chisel3.internal.firrtl.Connect
+
 private[chisel3] object MonoConnect {
   ...
   private def issueConnect(sink: Element, source: Element): Unit = {
@@ -1401,13 +1443,14 @@ private[chisel3] object MonoConnect {
 `Connect` 命令存放了左值 `loc: Node` 必须是 `Node` 节点参数类型，右值 `exp: Arg` 是 `Arg` 基本参数类型。
 
 ```scala
+// play-chisel/src/internal/firrtl/IR.scala
 case class Connect(loc: Node, exp: Arg) extends Command
 ```
 
 `lref` 跟 `ref` 有所不同，`lref` 要求不能是 `ReadOnlyBinding` 只读绑定类型（只读的当然不能被赋值啦）， `ref` 要求不能是字面量绑定类型 `LitBinding` （这里不细究）。
 
 ```scala
-// play-chisel/chiselFrontend/src/internal/Builder.scala
+// play-chisel/chiselFrontend/src/Data.scala
 abstract class Data extends HasId {
   private[chisel3] def lref: Node = {
     requireIsHardware(this)
@@ -1577,7 +1620,6 @@ object Builder {
         nameRecursively(s"${k}", v, namer)
       }
     case (iter: Iterable[_]) if iter.hasDefiniteSize =>
-      println(iter.size)
       for ((elt, i) <- iter.zipWithIndex) {
         nameRecursively(s"${prefix}_${i}", elt, namer)
       }
@@ -1638,6 +1680,7 @@ case class ModuleIO(mod: BaseModule, name: String) extends Arg
 `ModuleIO` 存放的信息是端口所在的模块和它的名字。
 
 ```scala
+// play-chisel/chiselFrontend/src/Module.scala
 abstract class BaseModule extends HasId {
   ...
   private[chisel3] val _namespace = Namespace.empty
@@ -1777,6 +1820,7 @@ class Mux2 extends RawModule {
 ```
 
 ```scala
+// play-chisel/chiselFrontend/src/RawModule.scala
 abstract class RawModule extends BaseModule {
   ...
   def generateComponent(): Component = {
@@ -1797,6 +1841,7 @@ abstract class RawModule extends BaseModule {
 **Verilog** 模块 **IR** 的信息包括该模块自身 `this`、名字 `name`、端口 **IR** 列表和命令列表（命令对应 **Verilog** 的语句）。
 
 ```scala
+// play-chisel/src/internal/firrtl/IR.scala
 case class Port(id: Data, dir: SpecifiedDirection)
 
 abstract class Component extends Arg {
@@ -1841,6 +1886,8 @@ import scala.collection.mutable.ArrayBuffer
 
 object Builder {
   val components: ArrayBuffer[Component] = ArrayBuffer[Component]()
+  def globalNamespace: Namespace = Namespace.empty
+
   ...
   def build[T <: RawModule](f: => T): (Circuit, T) = {
     println("Elaborating design...")
@@ -2012,6 +2059,11 @@ private class Emitter(circuit: Circuit) {
 
 - `DefPrim` 运算语句：作为 **FIRRTL** 的一个节点 `node 名字 = 运算类型的名字 参数列表`
 - `Connect` 赋值语句： `左值名字 <= 右值表达式名字`
+
+{{% admonition tip 源码03 %}}
+{{% /admonition %}}
+
+[play-chisel/tree/chap01-03](https://github.com/colin4124/play-chisel/tree/chap01-03)
 
 # 生成 Verilog
 
