@@ -11,7 +11,7 @@
     </div>
     {{- end -}}
 
-  {{- range $index, $element := $paginator.Pages.Reverse -}}
+  {{- range $index, $element := $paginator.Pages -}}
     {{- $thisYear := $element.Date.Format "2006" }}
     {{- $lastElement := $index | add -1 | index $paginator.Pages }}
     {{- if or (eq $index 0) ( ne ($lastElement.Date.Format "2006") $thisYear ) }}
