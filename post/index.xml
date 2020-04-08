@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 从零构建 Chisel</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 30 Nov 2019 16:14:50 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 17 Dec 2019 20:26:33 +0800</lastBuildDate>
     
 	<atom:link href="http://funwo.ml/build-chisel-from-scratch/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>第二章：开始构建 Firrtl</title>
+      <link>http://funwo.ml/build-chisel-from-scratch/post/firrtl-getting-started/</link>
+      <pubDate>Tue, 17 Dec 2019 20:26:33 +0800</pubDate>
+      
+      <guid>http://funwo.ml/build-chisel-from-scratch/post/firrtl-getting-started/</guid>
+      <description>上一篇讲如何构建基本 Chisel 框架，生成二选一多路选择器的 FIRRTL。本章也从零构建 Firrtl ，来满足生成对应 Verilog 的需求。</description>
+    </item>
     
     <item>
       <title>第一章 开始构建 Chisel</title>

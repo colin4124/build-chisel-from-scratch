@@ -3,14 +3,21 @@
   
   <url>
     <loc>http://funwo.ml/build-chisel-from-scratch/post/</loc>
-    <lastmod>2019-11-30T16:14:50+08:00</lastmod>
+    <lastmod>2019-12-17T20:26:33+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://funwo.ml/build-chisel-from-scratch/</loc>
-    <lastmod>2019-11-30T16:14:50+08:00</lastmod>
+    <lastmod>2019-12-17T20:26:33+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://funwo.ml/build-chisel-from-scratch/post/firrtl-getting-started/</loc>
+    <lastmod>2019-12-17T20:26:33+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
