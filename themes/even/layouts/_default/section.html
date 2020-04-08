@@ -5,13 +5,13 @@
 <section id="archive" class="archive">
   {{- if and (not $paginator.HasPrev) .Site.Params.showArchiveCount }}
     <div class="archive-title">
-      <span class="archive-post-counter">
-        {{ T "archiveCounter" (len .Data.Pages) }}
-      </span>
+        <span class="archive-post-counter">
+            {{ T "archiveCounter" (len .Data.Pages) }}
+        </span>
     </div>
-  {{- end -}}
+    {{- end -}}
 
-  {{- range $index, $element := $paginator.Pages -}}
+  {{- range $index, $element := $paginator.Pages.Reverse -}}
     {{- $thisYear := $element.Date.Format "2006" }}
     {{- $lastElement := $index | add -1 | index $paginator.Pages }}
     {{- if or (eq $index 0) ( ne ($lastElement.Date.Format "2006") $thisYear ) }}
